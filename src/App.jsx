@@ -1,8 +1,10 @@
+import Login from "./components/authentication/login";
+
 function App() {
   return (
-    <div>
-      <h1 className="text-amber-200">Hello world!</h1>
-    </div>
+    <>
+      <Login />
+    </>
   );
 }
 
