@@ -56,11 +56,11 @@ export default function Login() {
                 </p>
               </div>
               {/* Form Container */}
-              <div className="w-[90%] h-[60%] flex flex-col items-center justify-around">
+              <div className="w-[90%] h-[60%] flex flex-col items-center justify-evenly">
                 <div className="flex flex-col gap-4 w-[100%] items-center">
                   {/* Facebook Button */}
                   <button
-                    className="flex items-center justify-center gap-2 px-6 py-3 w-[40%] bg-blue-400 text-white rounded-lg shadow-md
+                    className="flex items-center justify-center gap-2 px-6 py-3 w-[100%] bg-blue-400 text-white rounded-lg shadow-md
                hover:bg-blue-500 hover:text-white focus:outline-none"
                   >
                     <img
@@ -73,7 +73,7 @@ export default function Login() {
 
                   {/* Google Button */}
                   <button
-                    className="flex items-center justify-center gap-2 px-6 py-3 w-[40%] bg-[#d0d0d0] text-white rounded-lg shadow-md
+                    className="flex items-center justify-center gap-2 px-6 py-3 w-[100%] bg-[#d0d0d0] text-white rounded-lg shadow-md
                hover:bg-[#989595] hover:text-white focus:outline-none"
                   >
                     <img
@@ -84,23 +84,24 @@ export default function Login() {
                     Login with Google
                   </button>
                 </div>
-                {/* Email */}
-                <div className="flex flex-col text-lg h-[25%]">
-                  <label className="text-xl">Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="border border-gray-300 rounded-lg p-3 bg-gray-100 h-10 shadow-sm focus:outline-none focus:border-blue-400 focus:shadow-lg placeholder:text-sm placeholder:text-left placeholder:opacity-70"
-                  />
-                </div>
-                {/* Password */}
-                <div className="flex flex-col text-lg h-[25%] ">
-                  <label className="text-xl">Password</label>
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    className="border border-gray-300 rounded-lg p-3 bg-gray-100 h-10 shadow-sm focus:outline-none focus:border-blue-400 focus:shadow-lg placeholder:text-sm placeholder:text-left placeholder:opacity-70"
-                  />
+                <div className="flex flex-col w-[100%] justify-around">
+                  <div className="flex flex-col text-lg h-[50%] w-[100%]">
+                    <label className="text-xl">Email</label>
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      className="border border-gray-300 rounded-lg p-3 bg-gray-100 h-10 shadow-sm focus:outline-none focus:border-blue-400 focus:shadow-lg placeholder:text-sm placeholder:text-left placeholder:opacity-70"
+                    />
+                  </div>
+                  {/* Password */}
+                  <div className="flex flex-col text-lg  h-[50%] w-[100%]">
+                    <label className="text-xl">Password</label>
+                    <input
+                      type="password"
+                      placeholder="Enter your password"
+                      className="border border-gray-300 rounded-lg p-3 bg-gray-100 h-10 shadow-sm focus:outline-none focus:border-blue-400 focus:shadow-lg placeholder:text-sm placeholder:text-left placeholder:opacity-70"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -111,7 +112,7 @@ export default function Login() {
                 <div className="mt-2">
                   {" "}
                   {/* Added margin for spacing */}
-                  <p className="text-sm text-gray-600">
+                  <p className="text-lg text-gray-600">
                     Not a member?{" "}
                     <span
                       className="text-blue-500 underline hover:cursor-pointer"
@@ -124,7 +125,7 @@ export default function Login() {
               </div>
             </>
           ) : (
-            <Registration />
+            <Registration toggleView={toggleView} />
           )}
         </motion.div>
       </main>
