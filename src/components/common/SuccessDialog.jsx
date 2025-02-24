@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
-const SuccessDialog = ({ message, showDialog, onClose }) => {
+const SuccessDialog = ({ message1, message2, showDialog, onClose }) => {
   useEffect(() => {
     if (showDialog) {
       setTimeout(() => {}, 2000);
@@ -13,7 +13,7 @@ const SuccessDialog = ({ message, showDialog, onClose }) => {
   return (
     <>
       {showDialog && (
-        <div className="fixed top-0 left-0 w-full h-full bg-transparent bg-opacity-80 flex justify-center items-center">
+        <div className="fixed top-0 left-0 w-full h-full bg-transparent bg-opacity-80 flex justify-center items-center z-50">
           <motion.div
             className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-md text-center"
             initial={{ scale: 0.7, opacity: 0 }}
@@ -27,10 +27,8 @@ const SuccessDialog = ({ message, showDialog, onClose }) => {
                 style={{ color: "#63E6BE" }}
               />
             </div>
-            <h2 className="text-xl font-bold mt-4">{message}</h2>
-            <p className="text-lg text-gray-500 mt-2">
-              Redirecting to login page...
-            </p>
+            <h2 className="text-xl font-bold mt-4">{message1}</h2>
+            <p className="text-lg text-gray-500 mt-2">{message2}</p>
           </motion.div>
         </div>
       )}

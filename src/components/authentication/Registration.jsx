@@ -129,10 +129,13 @@ export default function Registration({ toggleView }) {
         </p>
       </motion.div>
 
-      {/* Success Dialog */}
+      {showSuccessDialog && (
+        <div className="fixed top-0 left-0 w-full h-full bg-transparent bg-opacity-50 backdrop-blur-sm pointer-events-none"></div>
+      )}
       <SuccessDialog
         showDialog={showSuccessDialog}
-        message="Your account has been created"
+        message1={"Your account has been created!"}
+        message2={"Redirecting to Login..."}
       />
     </>
   );
