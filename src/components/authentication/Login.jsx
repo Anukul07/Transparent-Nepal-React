@@ -29,7 +29,7 @@ export default function Login() {
         />
       </header>
 
-      <main className="w-full h-[70vh] md:min-h-[67vh] lg:min-h-[70vh] flex justify-center items-center">
+      <main className="w-full h-[90vh] sm:min-h-[90vh] md:min-h-[90vh] lg:min-h-[90vh] flex justify-center items-center">
         <motion.div
           className="w-[80%] h-[90%] sm:w-[60%] sm:h-[90%] md:w-[50%] md:h-[90%] lg:w-[40%] lg:h-[90%] rounded-2xl shadow-2xl shadow-black-50 flex flex-col items-center justify-evenly"
           key={isLoginView ? "login" : "registration"} // Key to trigger animation based on view
