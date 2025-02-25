@@ -1,5 +1,9 @@
 @import "tailwindcss";
+
 @theme{
   --default-font-family :"Lato";
 }
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
