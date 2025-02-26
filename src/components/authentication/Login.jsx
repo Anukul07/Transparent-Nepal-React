@@ -31,6 +31,9 @@ export default function Login() {
       );
 
       if (response.data.status === "success") {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userId", response.data.userId);
+        localStorage.setItem("role", response.data.role);
         // Show success dialog for 2 seconds before navigating
         setShowDialog(true);
         setTimeout(() => {
