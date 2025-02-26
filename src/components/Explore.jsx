@@ -8,10 +8,15 @@ import { faBoltLightning } from "@fortawesome/free-solid-svg-icons";
 import { calculateTimeAgo } from "../utils/timeUtils";
 import { Search, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import UploadResumeModal from "./common/UploadResumeModal";
+import NoToken from "./common/NoToken";
 import axios from "axios";
 import "./../index.css";
 
 export default function Explore() {
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [activeButton, setActiveButton] = useState("jobs");
@@ -20,10 +25,17 @@ export default function Explore() {
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [jobSearchInput, setJobSearchInput] = useState(""); // Separate state for job search input
   const [locationSearchInput, setLocationSearchInput] = useState("");
+  const [authError, setAuthError] = useState(false);
+  const navigate = useNavigate();
 
   const fetchJobs = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("http://localhost:3002/api/v1/jobs");
+      const response = await axios.get("http://localhost:3002/api/v1/jobs", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.data.success) {
         const sortedJobs = response.data.jobs.sort((a, b) => {
           const jobNameA = a.jobName.toUpperCase();
@@ -39,16 +51,50 @@ export default function Explore() {
       }
     } catch (error) {
       console.error("Error fetching jobs:", error);
+      setAuthError(true);
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     }
   };
 
   const fetchSavedJobs = async () => {
+    const userId = localStorage.getItem("userId");
+    console.log(userId);
+    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(
-        "http://localhost:3002/api/v1/savedJobs"
-      ); // Assuming a savedJobs endpoint
+      // First, fetch the saved jobs for the user
+      const response = await axios.post(
+        `http://localhost:3002/api/v1/users/getSavedJobs`,
+        {
+          // Send userId in the request body
+          userId: userId,
+        }
+      );
+
       if (response.data.success) {
-        const sortedJobs = response.data.jobs.sort((a, b) => {
+        const savedJobs = response.data.savedJobs;
+
+        // Now, fetch company details for each saved job
+        const jobsWithCompanyData = await Promise.all(
+          savedJobs.map(async (job) => {
+            const companyResponse = await axios.get(
+              `http://localhost:3002/api/v1/companies/${job.companyId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            return {
+              ...job,
+              companyId: companyResponse.data.company, // Add company details to the job object
+            };
+          })
+        );
+
+        // Sort the jobs and update the state
+        const sortedJobs = jobsWithCompanyData.sort((a, b) => {
           const jobNameA = a.jobName.toUpperCase();
           const jobNameB = b.jobName.toUpperCase();
           if (jobNameA < jobNameB) return -1;
@@ -57,7 +103,7 @@ export default function Explore() {
         });
         setJobs(sortedJobs);
         if (sortedJobs.length > 0) {
-          setSelectedJob(sortedJobs[0]);
+          setSelectedJob(sortedJobs[0] || null);
         }
       }
     } catch (error) {
@@ -66,12 +112,43 @@ export default function Explore() {
   };
 
   useEffect(() => {
+    fetchJobs();
     if (activeButton === "jobs") {
       fetchJobs(); // Fetch jobs by default
     } else {
       fetchSavedJobs(); // Fetch saved jobs
     }
   }, [activeButton]);
+
+  if (authError) {
+    return <NoToken />;
+  }
+  const handleSaveJob = async () => {
+    const userId = localStorage.getItem("userId"); // Ensure userId is stored in localStorage
+    if (!userId || !selectedJob) {
+      console.error("User ID or selected job is missing");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3002/api/v1/users/savedJobs",
+        {
+          userId,
+          jobId: selectedJob._id, // Ensure the job ID is correctly referenced
+        }
+      );
+
+      if (response.data.success) {
+        setBookmarked(true);
+        console.log("Job saved successfully!");
+      } else {
+        console.error("Failed to save job:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Error saving job:", error);
+    }
+  };
 
   return (
     <>
@@ -255,7 +332,7 @@ export default function Explore() {
                         <img
                           src={`http://localhost:3002/uploads/${selectedJob.companyId.companyLogo}`}
                           alt="Company Logo"
-                          className="w-40 h-30"
+                          className="w-30 h-30"
                         />
                       </div>
                       <div className="flex flex-col w-[60%] pl-2 justify-around">
@@ -269,15 +346,29 @@ export default function Explore() {
                           ⭐ {selectedJob.companyId.companyRatings}
                         </span>
                       </div>
-                      <div className="w-[20%] flex p-1">
-                        <button className=" mr-4 mt-1 h-fit w-fit cursor-pointer">
-                          <FontAwesomeIcon
-                            icon={faBookmarkRegular}
-                            size="xl"
-                            style={{ color: "#000000" }}
-                          />
+                      <div className="w-[30%] flex p-1">
+                        <button
+                          className="p-2 h-fit mr-3 rounded-md w-fit cursor-pointer transition-colors duration-200 hover:bg-gray-300"
+                          onClick={handleSaveJob}
+                        >
+                          {bookmarked ? (
+                            <FontAwesomeIcon
+                              icon={faBookmark}
+                              size="xl"
+                              style={{ color: "#000000" }}
+                            />
+                          ) : (
+                            <FontAwesomeIcon
+                              icon={faBookmarkRegular}
+                              size="xl"
+                              style={{ color: "#000000" }}
+                            />
+                          )}
                         </button>
-                        <button className="px-4 py-2 h-fit w-fit cursor-pointer bg-green-600 text-white rounded-lg hover:bg-green-700  ">
+                        <button
+                          className="px-4 py-2 h-fit w-fit cursor-pointer bg-green-600 text-white rounded-lg hover:bg-green-700"
+                          onClick={() => setShowUploadModal(true)}
+                        >
                           <FontAwesomeIcon
                             icon={faBoltLightning}
                             style={{ color: "#000000" }}
@@ -286,6 +377,11 @@ export default function Explore() {
                           />
                           Apply
                         </button>
+                        {showUploadModal && (
+                          <UploadResumeModal
+                            onClose={() => setShowUploadModal(false)}
+                          />
+                        )}
                       </div>
                     </div>
                     {/* bottom */}
@@ -312,7 +408,7 @@ export default function Explore() {
                   {/* Job Description */}
                   <div className="mt-6">
                     <h3 className="text-xl font-semibold">Job Description</h3>
-                    <p className="text-gray-600 mt-2 text-lg">
+                    <p className="text-gray-600 mt-2 text-md text-justify">
                       {selectedJob.jobDescription}
                     </p>
                   </div>
@@ -323,7 +419,7 @@ export default function Explore() {
                   {/* Company Description */}
                   <div className="mt-6">
                     <h3 className="text-xl font-semibold">About the Company</h3>
-                    <p className="text-gray-600 mt-2 text-lg">
+                    <p className="text-gray-600 mt-2 text-md text-justify">
                       {selectedJob.companyId.companyDescription}
                     </p>
                   </div>
@@ -336,6 +432,14 @@ export default function Explore() {
             </div>
           </div>
         </div>
+        {/* Modal Backdrop */}
+        {showUploadModal && (
+          <div className="fixed top-0 left-0 w-full h-full bg-transparent bg-opacity-50 backdrop-blur-sm pointer-events-none">
+            <div className="relative z-10">
+              <UploadResumeModal onClose={() => setShowUploadModal(false)} />
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>
