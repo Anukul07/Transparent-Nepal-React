@@ -3,26 +3,45 @@ import Footer from "./common/Footer";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./../index.css";
+import { useNavigate } from "react-router-dom";
+import NoToken from "./common/NoToken";
 
 export default function Companies() {
   const [companies, setCompanies] = useState([]);
+  const [authError, setAuthError] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Fetch companies data from the API
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3002/api/v1/companies")
+      .get("http://localhost:3002/api/v1/companies", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         if (response.data.success) {
-          // Sort companies alphabetically by company name
           const sortedCompanies = response.data.companies.sort((a, b) =>
             a.companyName.localeCompare(b.companyName)
           );
           setCompanies(sortedCompanies);
+        } else {
+          setAuthError(true);
         }
       })
       .catch((error) => {
         console.error("Error fetching companies:", error);
+        setAuthError(true);
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       });
-  }, []);
+  }, [navigate]);
+
+  if (authError) {
+    return <NoToken />;
+  }
+
   return (
     <>
       <Navigation />

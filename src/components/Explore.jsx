@@ -7,7 +7,7 @@ import { faBookmark as faBookmarkRegular } from "@fortawesome/free-regular-svg-i
 import { faBoltLightning } from "@fortawesome/free-solid-svg-icons";
 import { calculateTimeAgo } from "../utils/timeUtils";
 import { Search, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadResumeModal from "./common/UploadResumeModal";
 import NoToken from "./common/NoToken";
@@ -120,6 +120,21 @@ export default function Explore() {
     }
   }, [activeButton]);
 
+  const filteredJobs = useMemo(() => {
+    let filtered = jobs;
+    if (jobSearchInput) {
+      filtered = filtered.filter((job) =>
+        job.jobName.toLowerCase().includes(jobSearchInput.toLowerCase())
+      );
+    }
+    if (selectedLocation) {
+      filtered = filtered.filter((job) =>
+        job.jobLocation.toLowerCase().includes(selectedLocation.toLowerCase())
+      );
+    }
+    return filtered;
+  }, [jobs, jobSearchInput, selectedLocation]);
+
   if (authError) {
     return <NoToken />;
   }
@@ -212,7 +227,7 @@ export default function Explore() {
                     <li
                       key={index}
                       className="p-2 text-gray-700 hover:bg-gray-300 cursor-pointer"
-                      onClick={() => setLocationSearchInput(location)}
+                      onClick={() => setSelectedLocation(location)}
                     >
                       {location}
                     </li>
@@ -276,46 +291,47 @@ export default function Explore() {
             {/* job mini display */}
             {/* Left Box: Job List */}
             <div className="w-[30%] h-[95%] hide-scrollbar overflow-y-auto">
-              {jobs.map((job) => (
-                <div
-                  key={job._id}
-                  className={`bg-white p-4 rounded-xl shadow-lg mt-1 cursor-pointer transition hover:bg-gray-200 
-              hover:shadow-xl ${
-                selectedJob?._id === job._id
-                  ? "border-2 border-[#0000008b]"
-                  : "border border-transparent"
-              }`}
-                  onClick={() => setSelectedJob(job)}
-                >
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={`http://localhost:3002/uploads/${job.companyId.companyLogo}`}
-                      alt="Company Logo"
-                      className="w-10 h-10 mt-2"
-                    />
-                    <div>
-                      <h3 className="text-lg font-semibold">{job.jobName}</h3>
-                      <p className="text-lg text-gray-600">
-                        {job.companyId.companyName}
+              {filteredJobs.map(
+                (
+                  job // Use filteredJobs here!
+                ) => (
+                  <div
+                    key={job._id}
+                    className={`bg-white p-4 rounded-xl shadow-lg mt-1 cursor-pointer transition hover:bg-gray-200 hover:shadow-xl ${
+                      selectedJob?._id === job._id
+                        ? "border-2 border-[#0000008b]"
+                        : "border border-transparent"
+                    }`}
+                    onClick={() => setSelectedJob(job)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={`http://localhost:3002/uploads/${job.companyId.companyLogo}`}
+                        alt="Company Logo"
+                        className="w-10 h-10 mt-2"
+                      />
+                      <div>
+                        <h3 className="text-lg font-semibold">{job.jobName}</h3>
+                        <p className="text-lg text-gray-600">
+                          {job.companyId.companyName}
+                        </p>
+                        <span className="text-sm bg-gray-200 px-2 py-1 rounded-md">
+                          ⭐ {job.companyId.companyRatings}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mt-2">{job.jobLocation}</p>
+                    <div className="flex justify-between">
+                      <p className="text-green-600 font-medium">
+                        Rs&nbsp;{job.salaryRange}
                       </p>
-                      <span className="text-sm bg-gray-200 px-2 py-1 rounded-md">
-                        ⭐ {job.companyId.companyRatings}
-                      </span>
+                      <p className="text-sm text-gray-500">
+                        {calculateTimeAgo(job.updatedAt)}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-gray-600 mt-2">{job.jobLocation}</p>
-                  <div className="flex justify-between">
-                    <p className="text-green-600 font-medium">
-                      Rs&nbsp;
-                      {job.salaryRange}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {calculateTimeAgo(job.updatedAt)}{" "}
-                      {/* Using the utility function */}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
 
             {/* Right Box: Selected Job Details */}
@@ -436,7 +452,10 @@ export default function Explore() {
         {showUploadModal && (
           <div className="fixed top-0 left-0 w-full h-full bg-transparent bg-opacity-50 backdrop-blur-sm pointer-events-none">
             <div className="relative z-10">
-              <UploadResumeModal onClose={() => setShowUploadModal(false)} />
+              <UploadResumeModal
+                onClose={() => setShowUploadModal(false)}
+                userAppliedJobs={selectedJob}
+              />
             </div>
           </div>
         )}
