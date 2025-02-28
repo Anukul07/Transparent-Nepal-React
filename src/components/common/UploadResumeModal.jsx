@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
-export default function UploadResumeModal({ onClose }) {
+export default function UploadResumeModal({ onClose, selectedJob }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -53,6 +53,22 @@ export default function UploadResumeModal({ onClose }) {
       setUploadSuccess(true);
       setError("");
 
+      // Fetch user details to get email and send email
+      const userResponse = await axios.get(
+        `http://localhost:3002/api/v1/users/${userId}`
+      );
+      const user = userResponse.data.data.user;
+      const userEmail = user.email;
+      const resumeFileName = response.data.file;
+
+      // Send email logic
+      await sendUploadConfirmationEmail(userEmail, resumeFileName);
+      console.log(selectedJob);
+      // await axios.post("http://localhost:3002/api/v1/users/appliedJobs", {
+      //   userId: userId,
+      //   jobId: selectedJob._id,
+      // });
+
       setTimeout(() => {
         onClose();
         navigate("/Explore");
@@ -61,6 +77,18 @@ export default function UploadResumeModal({ onClose }) {
       console.error("Upload failed:", error);
       setError("Failed to upload resume.");
       setUploadSuccess(false);
+    }
+  };
+  const sendUploadConfirmationEmail = async (userEmail, resumeFileName) => {
+    try {
+      await axios.post("http://localhost:3002/api/v1/users/sendUploadEmail", {
+        email: userEmail,
+        fileName: resumeFileName,
+      });
+      console.log("Email sent successfully");
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+      setError("Resume uploaded, but failed to send email.");
     }
   };
 

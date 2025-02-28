@@ -4,6 +4,7 @@ import Explore from "./components/Explore"; // Assume you have this component fo
 import Companies from "./components/Companies";
 import Faq from "./components/Faq";
 import SuccessDialog from "./components/common/SuccessDialog";
+import Profile from "./components/Profile";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/profile" element={<Profile />} />
         {/* You can add other routes as necessary */}
       </Routes>
     </Router>
