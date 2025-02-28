@@ -5,6 +5,7 @@ import Companies from "./components/Companies";
 import Faq from "./components/Faq";
 import SuccessDialog from "./components/common/SuccessDialog";
 import Profile from "./components/Profile";
+import Admin from "./components/Admin";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/companies" element={<Companies />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<Admin />} />
         {/* You can add other routes as necessary */}
       </Routes>
     </Router>
