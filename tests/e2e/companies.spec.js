@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Companies Page Tests", () => {
   test.beforeEach(async ({ page }) => {
-    // Mocking the API response for fetching companies
     await page.route(
       "http://localhost:3002/api/v1/companies",
       async (route) => {
@@ -32,7 +31,6 @@ test.describe("Companies Page Tests", () => {
       }
     );
 
-    // Navigating to the Companies page
     await page.goto("http://localhost:5173/companies");
   });
 
@@ -51,7 +49,6 @@ test.describe("Companies Page Tests", () => {
   });
 
   test("Should show error if the API request fails", async ({ page }) => {
-    // Mock the API response to simulate an error
     await page.route(
       "http://localhost:3002/api/v1/companies",
       async (route) => {
@@ -66,7 +63,6 @@ test.describe("Companies Page Tests", () => {
       }
     );
 
-    // Trigger a re-fetching of the companies data
     await page.reload();
   });
 
@@ -114,7 +110,6 @@ test.describe("Companies Page Tests", () => {
   test("Should render job listings correctly under each company", async ({
     page,
   }) => {
-    // Mocking the API response with a company that has multiple job listings
     await page.route(
       "http://localhost:3002/api/v1/companies",
       async (route) => {
