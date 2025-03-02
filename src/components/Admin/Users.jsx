@@ -7,14 +7,15 @@ import NoToken from "../common/NoToken";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [jobs, setJobs] = useState({}); // Store job details by ID
+  const [jobs, setJobs] = useState({});
   const [authFailed, setAuthFailed] = useState(false);
   const navigate = useNavigate();
 
+  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem("token"); // Get token from local storage
+        const token = localStorage.getItem("token");
         const response = await fetch("http://localhost:3002/api/v1/users", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,8 +30,6 @@ export default function Users() {
         console.error("Error fetching users:", error);
         if (error.response && error.response.status === 401) {
           setAuthFailed(true);
-        } else {
-          console.error("error while fetching the users", error);
         }
       }
     };
@@ -38,37 +37,51 @@ export default function Users() {
     fetchUsers();
   }, []);
 
+  // Fetch job details only once per job ID
   useEffect(() => {
-    const fetchJobDetails = async (jobId) => {
+    const fetchJobDetails = async () => {
+      const jobIdsToFetch = new Set();
+      users.forEach((user) => {
+        user.savedJobs.forEach((jobId) => {
+          if (!jobs[jobId]) {
+            jobIdsToFetch.add(jobId);
+          }
+        });
+      });
+
+      if (jobIdsToFetch.size === 0) return; // No new jobs to fetch
+
       try {
-        const response = await fetch(
-          `http://localhost:3002/api/v1/jobs/${jobId}`
+        const jobRequests = [...jobIdsToFetch].map((jobId) =>
+          fetch(`http://localhost:3002/api/v1/jobs/${jobId}`).then((res) =>
+            res.json()
+          )
         );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch job details for ${jobId}`);
-        }
-        const data = await response.json();
-        setJobs((prevJobs) => ({ ...prevJobs, [jobId]: data.job }));
+
+        const jobResponses = await Promise.all(jobRequests);
+
+        const newJobs = {};
+        jobResponses.forEach((jobData, index) => {
+          if (jobData && jobData.job) {
+            newJobs[[...jobIdsToFetch][index]] = jobData.job;
+          }
+        });
+
+        setJobs((prevJobs) => ({ ...prevJobs, ...newJobs }));
       } catch (error) {
-        console.error(`Error fetching job details for ${jobId}:`, error);
+        console.error("Error fetching job details:", error);
       }
     };
 
-    users.forEach((user) => {
-      user.savedJobs.forEach((jobId) => {
-        if (!jobs[jobId]) {
-          fetchJobDetails(jobId);
-        }
-      });
-    });
-  }, [users, jobs]);
+    fetchJobDetails();
+  }, [users]); // Depend only on `users`
 
   const handleDeactivate = async (userId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
         `http://localhost:3002/api/v1/users/${userId}/deactivate`,
-        {}, // Empty data object for PATCH requests
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,16 +89,17 @@ export default function Users() {
         }
       );
 
-      // Update the UI (e.g., refetch users or update the user's status in the state)
-      const updatedUsers = users.map((user) =>
-        user._id === userId ? { ...user, active: false } : user
+      // Update UI without refetching everything
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === userId ? { ...user, active: false } : user
+        )
       );
-      setUsers(updatedUsers);
     } catch (error) {
       console.error("Error deactivating user:", error);
-      // Handle error (e.g., show a message to the user)
     }
   };
+
   if (authFailed) {
     return <NoToken />;
   }

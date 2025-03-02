@@ -24,15 +24,19 @@ export default function Admin() {
       try {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
-        const response = await axios.get(
-          `http://localhost:3002/api/v1/users/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setUserData(response.data.data.user);
+        if (token && userId) {
+          const response = await axios.get(
+            `http://localhost:3002/api/v1/users/${userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setUserData(response.data.data.user);
+        } else {
+          setAuthFailed(true);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
         if (error.response && error.response.status === 401) {
@@ -44,7 +48,7 @@ export default function Admin() {
     };
 
     fetchUserData();
-  });
+  }, []);
   const renderComponent = () => {
     switch (activeComponent) {
       case "users":
