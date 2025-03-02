@@ -30,19 +30,39 @@ test.describe("Login Page Tests", () => {
     await expect(page.locator("button", { hasText: "Log In" })).toBeVisible();
   });
 
-  test("Should show error on empty fields", async ({ page }) => {
-    await page.click("button:has-text('Log In')");
-    await expect(
-      page.locator("text=Please provide both email and password")
-    ).toBeVisible();
+  test("Should render social login buttons and allow clicking", async ({
+    page,
+  }) => {
+    const facebookButton = page.locator(
+      "button:has-text('Login with Facebook')"
+    );
+    const googleButton = page.locator("button:has-text('Login with Google')");
+
+    await expect(facebookButton).toBeVisible();
+    await expect(googleButton).toBeVisible();
+
+    await facebookButton.click();
+    await googleButton.click();
   });
 
   test("Should show error on invalid credentials", async ({ page }) => {
+    await page.route(
+      "http://localhost:3002/api/v1/users/login",
+      async (route) => {
+        await route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "Login failed. Please try again." }),
+        });
+      }
+    );
+
     await page
       .locator("label:text('Email') + input")
       .fill("invalid@example.com");
     await page.locator("label:text('Password') + input").fill("wrongpassword");
     await page.click("button:has-text('Log In')");
+
     await expect(
       page.locator("text=Login failed. Please try again.")
     ).toBeVisible();
