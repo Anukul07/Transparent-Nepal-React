@@ -42,7 +42,7 @@ export default function Login() {
           if (role === "user") {
             // Redirect to Explore page after dialog
             navigate("/explore");
-          } else if (role === "admin") {
+          } else if (role === "admin") {  
             navigate("/admin");
           }
         }, 2000);
